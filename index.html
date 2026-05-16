@@ -686,6 +686,7 @@
       <div class="carousel-slide" data-idx="2"><div class="carousel-slide-placeholder">03<small>点击 ⚙ 添加</small></div></div>
       <div class="carousel-slide" data-idx="3"><div class="carousel-slide-placeholder">04<small>点击 ⚙ 添加</small></div></div>
       <div class="carousel-slide" data-idx="4"><div class="carousel-slide-placeholder">05<small>点击 ⚙ 添加</small></div></div>
+      <div class="carousel-slide" data-idx="5"><div class="carousel-slide-placeholder">06<small>点击 ⚙ 添加</small></div></div>
     </div>
     <div class="carousel-controls">
       <button class="carousel-btn" id="carouselPrev">←</button>
@@ -694,6 +695,7 @@
       <button class="carousel-dot" data-dot="2"></button>
       <button class="carousel-dot" data-dot="3"></button>
       <button class="carousel-dot" data-dot="4"></button>
+      <button class="carousel-dot" data-dot="5"></button>
       <button class="carousel-btn" id="carouselNext">→</button>
     </div>
   </aside>
@@ -1035,7 +1037,7 @@
   } catch(e) {}
 
   let coverPhotoUrl = localStorage.getItem(STORAGE_COVER) || 'photos/cover.jpg';
-  let carouselPhotos = JSON.parse(localStorage.getItem(STORAGE_CAROUSEL) || '["photos/photo1.jpg","photos/photo2.jpg","photos/photo3.jpg","photos/photo4.jpg","photos/photo5.jpg"]');
+  let carouselPhotos = JSON.parse(localStorage.getItem(STORAGE_CAROUSEL) || '["photos/photo1.jpg","photos/photo2.jpg","photos/photo3.jpg","photos/photo4.jpg","photos/photo5.jpg","photos/photo6.jpg"]');
 
   function saveState() {
     localStorage.setItem(STORAGE_COVER, coverPhotoUrl);
@@ -1225,7 +1227,7 @@
   // Reset
   document.getElementById('resetPhotos').addEventListener('click', () => {
     coverPhotoUrl = '';
-    carouselPhotos = ['photos/photo1.jpg','photos/photo2.jpg','photos/photo3.jpg','photos/photo4.jpg','photos/photo5.jpg'];
+    carouselPhotos = ['photos/photo1.jpg','photos/photo2.jpg','photos/photo3.jpg','photos/photo4.jpg','photos/photo5.jpg','photos/photo6.jpg'];
     saveState();
     document.getElementById('coverUrl').value = '';
     refreshAllPhotos();
