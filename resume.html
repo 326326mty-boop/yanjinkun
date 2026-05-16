@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>闫金坤 YAN Jinkun</title>
+<style>
+  :root {
+    --c-bg: #ededeb;
+    --c-text: #1a1a1a;
+    --c-text2: #555;
+    --c-text3: #999;
+    --c-border: rgba(0,0,0,0.07);
+    --glass-bg: rgba(255,255,255,0.72);
+    --glass-blur: 20px;
+    --glass-radius: 32px;
+    --glass-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 18px rgba(0,0,0,0.035);
+    --cover-photo-size: min(62vh, 600px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--c-bg);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--c-text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    background: var(--c-bg);
+  }
+
+  /* ===== DOTS CANVAS ===== */
+  #waveCanvas {
+    display: none;
+  }
+
+  /* ===== CONTENT LAYER ===== */
+  .content-layer {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .content-layer > * { pointer-events: auto; }
+
+  /* ===== GLASS CARD ===== */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--c-border);
+    border-radius: var(--glass-radius);
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.35s ease;
+  }
+  .glass:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 6px 24px rgba(0,0,0,0.05);
+  }
+
+  /* ===== NAV ===== */
+  .nav {
+    position: sticky;
+    top: 12px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 14px 26px;
+    margin-bottom: 56px;
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: var(--glass-radius);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.35s ease;
+  }
+  .nav.scrolled { box-shadow: var(--glass-shadow); }
+  .nav:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 6px 20px rgba(0,0,0,0.04);
+  }
+
+  .nav a {
+    font-size: 0.4rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--c-text3);
+    text-decoration: none;
+    transition: color 0.25s;
+  }
+  .nav a:hover, .nav a.active { color: var(--c-text); }
+
+  .nav-spacer { flex: 1; }
+
+  /* ===== SETTINGS FAB ===== */
+  .settings-fab {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.6);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #999;
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .settings-fab:hover { color: #333; border-color: rgba(0,0,0,0.2); }
+
+  /* ===== SETTINGS PANEL ===== */
+  .settings-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.12);
+    z-index: 300; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .settings-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .settings-panel {
+    position: fixed; top: 0; right: -440px;
+    width: 420px; max-width: 92vw; height: 100vh;
+    background: #fff;
+    z-index: 301; padding: 44px 32px 32px; overflow-y: auto;
+    transition: right 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+    box-shadow: -2px 0 40px rgba(0,0,0,0.08);
+  }
+  .settings-panel.open { right: 0; }
+
+  .settings-panel h3 {
+    font-size: 0.8rem; font-weight: 500; letter-spacing: 3px;
+    margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .settings-close {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid #ddd; background: #fff; cursor: pointer;
+    font-size: 0.9rem; color: #aaa;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .settings-close:hover { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+  .setting-group { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid #f0f0ee; }
+  .setting-group:last-of-type { border-bottom: none; }
+  .setting-group h4 { font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: #bbb; margin-bottom: 14px; }
+
+  .input-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .input-row input[type="text"] {
+    flex: 1; padding: 7px 10px; border: 1px solid #e8e8e6;
+    background: #fafaf9; font-size: 0.72rem; color: #444; outline: none;
+    font-family: inherit; border-radius: 6px; transition: border-color 0.2s;
+  }
+  .input-row input[type="text"]:focus { border-color: #bbb; }
+  .input-row input[type="file"] { font-size: 0.68rem; color: #999; }
+
+  .btn-xs {
+    padding: 6px 14px; font-size: 0.65rem; letter-spacing: 1.5px;
+    cursor: pointer; border: 1px solid #ddd; background: #fff;
+    color: #666; font-family: inherit; border-radius: 6px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-xs:hover { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .btn-xs.remove { color: #c0a0a0; border-color: #edd; }
+  .btn-xs.remove:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
+
+  .photo-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 10px; background: #fafaf9; border-radius: 6px;
+    margin-bottom: 6px; font-size: 0.7rem; color: #666; gap: 8px;
+  }
+  .photo-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ===== TOP-LEFT NAME ===== */
+  .top-left-name {
+    position: fixed;
+    top: 28px; left: 32px;
+    z-index: 60;
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 4px;
+    color: var(--c-text3);
+    pointer-events: none;
+  }
+
+  /* ===== CLICKABLE BG LAYER ===== */
+  .bg-click-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    cursor: pointer;
+  }
+
+  /* ===== FOCUS OVERLAY ===== */
+  .focus-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .focus-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Card focus state */
+  .glass.focusable,
+  .carousel-view.focusable {
+    cursor: pointer;
+    transition: left 0.45s cubic-bezier(0.25, 0.1, 0.25, 1), top 0.45s cubic-bezier(0.25, 0.1, 0.25, 1), width 0.45s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.45s ease;
+  }
+
+  .glass.focusable.focused,
+  .carousel-view.focusable.focused {
+    max-height: 85vh;
+    overflow-y: auto !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    color: #e8e8e8 !important;
+    font-size: 125% !important;
+    z-index: 999 !important;
+    transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+  }
+  .glass.focusable.focused * {
+    color: #e8e8e8 !important;
+  }
+  .glass.focusable.focused .section-num,
+  .glass.focusable.focused .section-title-en,
+  .glass.focusable.focused .timeline-period,
+  .glass.focusable.focused .label-en,
+  .glass.focusable.focused .info-item label,
+  .glass.focusable.focused .skill-category h4,
+  .glass.focusable.focused .skill-category h4 span,
+  .glass.focusable.focused .paper-card .meta,
+  .glass.focusable.focused .eval-en,
+  .glass.focusable.focused .en {
+    color: #999 !important;
+  }
+  .glass.focusable.focused .skill-tag {
+    border-color: #444 !important;
+    background: #222 !important;
+    color: #ccc !important;
+  }
+  .glass.focusable.focused .timeline {
+    border-left-color: #333 !important;
+  }
+  .glass.focusable.focused .paper-card {
+    border-bottom-color: #333 !important;
+  }
+
+  /* ===== NAME SPLASH PAGE ===== */
+  .splash {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .splash-names {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(0.5rem, 2vw, 1.5rem);
+    transition: transform 0.15s ease-out;
+    user-select: none;
+  }
+  .splash-zh {
+    font-size: clamp(6rem, 16vw, 16rem);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    color: var(--c-text);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.04);
+    line-height: 1;
+  }
+  .splash-en {
+    font-size: clamp(3rem, 8vw, 8rem);
+    font-weight: 200;
+    letter-spacing: 0.06em;
+    color: var(--c-text3);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    line-height: 1;
+  }
+  .splash-hint {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: #bbb;
+    animation: fadeBreath 2.5s ease-in-out infinite;
+  }
+
+  /* ===== COVER ===== */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 32px;
+  }
+
+  .cover-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--c-border);
+    border-radius: var(--glass-radius);
+    box-shadow: var(--glass-shadow);
+    padding: 72px 64px;
+    width: 92vw;
+    max-width: 1300px;
+    transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s ease;
+  }
+  .cover-glass:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 8px 28px rgba(0,0,0,0.05);
+  }
+
+  .cover-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1080px;
+    gap: 64px;
+  }
+
+  .cover-left { flex: 0 0 auto; max-width: 580px; }
+
+  .cover-pre {
+    font-size: 0.9rem; letter-spacing: 6px; text-transform: uppercase;
+    color: var(--c-text3); margin-bottom: 24px;
+  }
+
+  .cover-name {
+    font-size: clamp(4.5rem, 9vw, 7rem);
+    font-weight: 200; letter-spacing: 8px; line-height: 1.05;
+    color: var(--c-text); margin-bottom: 8px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #444 40%, #1a1a1a 60%, #333 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: nameShimmer 4s ease-in-out infinite;
+  }
+
+  @keyframes nameShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .cover-name-en {
+    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+    font-weight: 300; letter-spacing: 6px;
+    color: var(--c-text3); margin-bottom: 32px;
+    animation: fadeBreath 3s ease-in-out infinite;
+  }
+
+  @keyframes fadeBreath {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.9; }
+  }
+
+  .cover-line { width: 44px; height: 1px; background: var(--c-text3); margin-bottom: 32px; }
+
+  .cover-bio {
+    font-size: 1.05rem; line-height: 1.9; color: var(--c-text2);
+    margin-bottom: 48px; font-weight: 350; max-width: 460px;
+  }
+
+  .cover-enter {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 16px 38px; border: 1px solid var(--c-text);
+    background: transparent; color: var(--c-text);
+    font-size: 0.95rem; letter-spacing: 3px; cursor: pointer;
+    font-family: inherit; transition: all 0.3s;
+    position: relative; overflow: hidden;
+    border-radius: 28px;
+    animation: btnPulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+    50% { box-shadow: 0 0 0 8px rgba(0,0,0,0.04); }
+  }
+  .cover-enter::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--c-text); transform: scaleX(0);
+    transform-origin: left; transition: transform 0.3s; z-index: -1;
+  }
+  .cover-enter:hover { color: #fff; gap: 16px; }
+  .cover-enter:hover::before { transform: scaleX(1); }
+  .cover-enter .arrow { transition: transform 0.3s; }
+  .cover-enter:hover .arrow { transform: translateX(4px); }
+
+  .cover-right {
+    flex: 0 0 auto;
+    width: var(--cover-photo-size);
+    height: var(--cover-photo-size);
+  }
+  .cover-photo {
+    width: 100%; height: 100%;
+    background: #e8e8e5;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; border-radius: var(--glass-radius);
+    box-shadow: var(--glass-shadow);
+    border: 1px solid rgba(0,0,0,0.06);
+    transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.4s ease;
+  }
+  .cover-photo:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06), 0 8px 30px rgba(0,0,0,0.06);
+  }
+  .cover-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cover-photo-placeholder {
+    color: #ccc; font-size: 2.2rem; font-weight: 200; text-align: center; line-height: 1.4;
+  }
+  .cover-photo-placeholder small { display: block; font-size: 0.6rem; letter-spacing: 2px; color: #ddd; margin-top: 6px; }
+
+  .cover-hint {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    font-size: 0.58rem; letter-spacing: 3px; color: #ccc;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .cover-hint span {
+    width: 1px; height: 24px; background: #ccc;
+    animation: hintLine 2s ease-in-out infinite;
+  }
+  @keyframes hintLine {
+    0%,100% { transform: scaleY(0.3); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+  }
+
+  /* ===== RESUME LAYOUT ===== */
+  .resume {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 32px 100px;
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+  }
+
+  .resume-main { flex: 1; max-width: 720px; font-size: 1.7rem; }
+
+  /* ===== NAME ABOVE CAROUSEL ===== */
+  .carousel-name {
+    font-size: 2.2rem;
+    font-weight: 200;
+    letter-spacing: 6px;
+    color: var(--c-text);
+    margin-bottom: 12px;
+    opacity: 0;
+    transform: translateY(-40px);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+    text-align: left;
+    padding-left: 4px;
+  }
+  .carousel-name.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== PHOTO CAROUSEL — left side, large ===== */
+  .resume-photos {
+    flex: 0 0 42%;
+    position: sticky; top: 100px;
+    display: flex; flex-direction: column;
+  }
+  .carousel-view {
+    height: 62vh; min-height: 480px; position: relative; overflow: hidden;
+    background: #e8e8e5; border-radius: var(--glass-radius);
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.35s ease;
+  }
+  .carousel-view:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 8px 26px rgba(0,0,0,0.05);
+  }
+  .carousel-slide {
+    position: absolute; inset: 0; opacity: 0;
+    transition: opacity 0.8s cubic-bezier(0.4,0,0.2,1);
+    pointer-events: none;
+  }
+  .carousel-slide.active { opacity: 1; pointer-events: auto; }
+  .carousel-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .carousel-slide-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #e8e8e5; color: #ccc;
+    font-size: 1rem; font-weight: 200; text-align: center; line-height: 1.6;
+  }
+  .carousel-slide-placeholder small { display: block; font-size: 0.55rem; letter-spacing: 1px; color: #ddd; margin-top: 4px; }
+
+  .carousel-controls {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 14px 0;
+  }
+  .carousel-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #d5d5d0; border: none; cursor: pointer; transition: all 0.3s;
+  }
+  .carousel-dot.active { background: #333; width: 14px; border-radius: 3px; }
+  .carousel-btn {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 1px solid #ddd; background: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; color: #aaa; transition: all 0.2s;
+  }
+  .carousel-btn:hover { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+  /* ===== SECTIONS ===== */
+  .section { margin-bottom: 32px; }
+  .section-card { padding: 42px 44px; }
+
+  .section-header { margin-bottom: 32px; }
+  .section-num { font-size: 0.58rem; letter-spacing: 4px; color: var(--c-text3); margin-bottom: 8px; }
+  .section-title { font-size: 1.6rem; font-weight: 250; letter-spacing: 3px; color: var(--c-text); }
+  .section-title-en { font-size: 0.7rem; color: var(--c-text3); letter-spacing: 2px; font-weight: 350; }
+
+  /* ===== INFO GRID ===== */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 36px; }
+  .info-item label { display: block; font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: var(--c-text3); margin-bottom: 4px; }
+  .info-item .val { font-size: 0.9rem; color: var(--c-text); }
+  .info-item .val-en { font-size: 0.68rem; color: var(--c-text3); margin-top: 2px; }
+
+  /* ===== HIGHLIGHTS ===== */
+  .highlight-row { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 0; }
+  .highlight-cell { padding: 32px 0; text-align: center; }
+  .highlight-cell + .highlight-cell { border-left: 1px solid var(--c-border); }
+  .highlight-cell .num { font-size: 2.4rem; font-weight: 200; color: var(--c-text); line-height: 1; }
+  .highlight-cell .num span { font-size: 0.85rem; color: var(--c-text3); }
+  .highlight-cell .label-zh { font-size: 0.75rem; color: var(--c-text2); margin-top: 6px; }
+  .highlight-cell .label-en { font-size: 0.6rem; color: var(--c-text3); letter-spacing: 1px; }
+
+  /* ===== SKILLS ===== */
+  .skill-category { margin-bottom: 28px; }
+  .skill-category h4 { font-size: 0.62rem; letter-spacing: 4px; text-transform: uppercase; color: var(--c-text3); margin-bottom: 14px; }
+  .skill-category h4 span { font-weight: 350; margin-left: 8px; color: #ccc; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .skill-tag {
+    padding: 6px 14px; border: 1px solid var(--c-border); background: rgba(255,255,255,0.45);
+    font-size: 0.8rem; color: var(--c-text2); letter-spacing: 0.5px; transition: all 0.2s; cursor: default;
+    border-radius: 10px;
+  }
+  .skill-tag:hover { color: #1a1a1a; border-color: #1a1a1a; background: rgba(0,0,0,0.03); }
+
+  /* ===== TIMELINE ===== */
+  .timeline { border-left: 1px solid var(--c-border); padding-left: 24px; }
+  .timeline-item { position: relative; margin-bottom: 32px; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -28px; top: 5px;
+    width: 7px; height: 7px; border-radius: 50%; background: #bbb;
+  }
+  .timeline-period { font-size: 0.62rem; letter-spacing: 3px; color: var(--c-text3); text-transform: uppercase; margin-bottom: 4px; }
+  .timeline-card h3 { font-size: 0.95rem; font-weight: 500; color: var(--c-text); margin-bottom: 2px; }
+  .timeline-card h3 .en { display: block; font-size: 0.68rem; color: var(--c-text3); font-weight: 350; margin-top: 2px; }
+  .timeline-card .role { font-size: 0.8rem; color: var(--c-text2); margin-bottom: 4px; font-weight: 350; }
+  .timeline-card p { font-size: 0.8rem; color: var(--c-text2); line-height: 1.7; }
+
+  /* ===== PAPERS ===== */
+  .papers-list { display: flex; flex-direction: column; gap: 16px; }
+  .paper-card { padding: 22px 0; border-bottom: 1px solid var(--c-border); }
+  .paper-card:last-child { border-bottom: none; padding-bottom: 0; }
+  .paper-card h3 { font-size: 0.88rem; font-weight: 500; color: var(--c-text); margin-bottom: 3px; }
+  .paper-card h3 .en { display: block; font-size: 0.68rem; color: var(--c-text3); font-weight: 350; margin-top: 2px; }
+  .paper-card .meta { font-size: 0.7rem; color: var(--c-text3); }
+
+  /* ===== EVAL ===== */
+  .eval-block p { font-size: 0.88rem; line-height: 1.9; color: var(--c-text2); font-weight: 350; }
+  .eval-block .eval-en { margin-top: 16px; font-size: 0.73rem; color: var(--c-text3); line-height: 1.7; font-style: italic; }
+
+  /* ===== FOOTER ===== */
+  .footer { margin-top: 20px; }
+  .footer-card { padding: 28px 44px; text-align: center; }
+  .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 10px; }
+  .footer-links a { font-size: 0.7rem; letter-spacing: 2px; color: var(--c-text3); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--c-text); }
+  .footer-copy { font-size: 0.62rem; color: #ccc; letter-spacing: 2px; }
+
+  /* ===== SCROLL REVEAL ===== */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 900px) {
+    .splash-names { flex-direction: column; align-items: center; gap: 0.2rem; }
+    .splash-zh { font-size: clamp(3.5rem, 18vw, 8rem); }
+    .splash-en { font-size: clamp(1.8rem, 9vw, 4rem); }
+    .cover { padding: 60px 16px 100px; }
+    .cover-glass { padding: 32px 20px; }
+    .cover-container { flex-direction: column; gap: 36px; text-align: center; }
+    .cover-left { max-width: 100%; order: 2; }
+    .cover-right { order: 1; width: 180px; height: 180px; }
+    .cover-photo { border-radius: 50%; }
+    .cover-bio { max-width: 100%; }
+    .cover-line { margin: 0 auto 28px; }
+    .resume { flex-direction: column; padding: 0 20px 80px; gap: 28px; }
+    .resume-photos { position: relative; top: auto; flex: 0 0 auto; width: 100%; order: -1; }
+    .carousel-view { height: 50vh; min-height: 320px; }
+    .carousel-name { font-size: 1.6rem; }
+    .resume-main { max-width: 100%; }
+    .section-card { padding: 28px 22px; }
+    .info-grid { grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+    .highlight-row { grid-template-columns: 1fr; }
+    .highlight-cell + .highlight-cell { border-left: none; border-top: 1px solid var(--c-border); }
+    .nav { gap: 14px; overflow-x: auto; padding: 10px 16px; }
+    .nav a { font-size: 0.58rem; letter-spacing: 1px; white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hidden canvas -->
+<canvas id="waveCanvas"></canvas>
+
+<!-- Clickable background -->
+<div class="bg-click-layer" id="bgClickLayer"></div>
+
+<!-- Top-left English name -->
+<div class="top-left-name">YAN JINKUN</div>
+
+<!-- Focus overlay -->
+<div class="focus-overlay" id="focusOverlay"></div>
+
+<!-- Content -->
+<div class="content-layer">
+
+<!-- Name Splash Page -->
+<section class="splash" id="splash">
+  <div class="splash-names" id="splashNames">
+    <span class="splash-zh">闫金坤</span>
+    <span class="splash-en">YAN JINKUN</span>
+  </div>
+  <div class="splash-hint">点击进入 · CLICK TO ENTER</div>
+</section>
+
+<!-- Cover -->
+<section class="cover" id="cover">
+  <div class="cover-glass">
+    <div class="cover-container">
+      <div class="cover-left">
+        <p class="cover-pre">Performing Artist</p>
+        <h1 class="cover-name">闫金坤</h1>
+        <p class="cover-name-en">YAN JINKUN</p>
+        <div class="cover-line"></div>
+        <p class="cover-bio">表演艺术者 · 戏剧演员 · 短视频编导 · 主持人。<br>辽宁大学艺术学院表演专业，热爱舞台，关注话剧、戏曲、影视及自媒体新发展方向。</p>
+        <button class="cover-enter" id="coverEnter">
+          查看完整简历 <span class="arrow">→</span>
+        </button>
+      </div>
+      <div class="cover-right">
+        <div class="cover-photo" id="coverPhoto">
+          <div class="cover-photo-placeholder">🎭<small>点击 ⚙ 设置照片</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cover-hint"><span></span>SCROLL</div>
+</section>
+
+<!-- Resume -->
+<div class="resume" id="resume">
+
+  <!-- Photo Carousel — Left side, large -->
+  <aside class="resume-photos" id="resumePhotos">
+    <div class="carousel-name" id="carouselName">闫金坤</div>
+    <div class="carousel-view glass" id="carouselView">
+      <div class="carousel-slide active" data-idx="0"><div class="carousel-slide-placeholder">01<small>点击 ⚙ 添加</small></div></div>
+      <div class="carousel-slide" data-idx="1"><div class="carousel-slide-placeholder">02<small>点击 ⚙ 添加</small></div></div>
+      <div class="carousel-slide" data-idx="2"><div class="carousel-slide-placeholder">03<small>点击 ⚙ 添加</small></div></div>
+      <div class="carousel-slide" data-idx="3"><div class="carousel-slide-placeholder">04<small>点击 ⚙ 添加</small></div></div>
+      <div class="carousel-slide" data-idx="4"><div class="carousel-slide-placeholder">05<small>点击 ⚙ 添加</small></div></div>
+    </div>
+    <div class="carousel-controls">
+      <button class="carousel-btn" id="carouselPrev">←</button>
+      <button class="carousel-dot active" data-dot="0"></button>
+      <button class="carousel-dot" data-dot="1"></button>
+      <button class="carousel-dot" data-dot="2"></button>
+      <button class="carousel-dot" data-dot="3"></button>
+      <button class="carousel-dot" data-dot="4"></button>
+      <button class="carousel-btn" id="carouselNext">→</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="resume-main">
+
+    <!-- Nav -->
+    <nav class="nav" id="nav">
+      <a href="#about" class="active">About</a>
+      <a href="#education">Education</a>
+      <a href="#skills">Skills</a>
+      <a href="#experience">Experience</a>
+      <a href="#research">Research</a>
+      <span class="nav-spacer"></span>
+      <button class="settings-fab" id="settingsFab" title="设置">⚙</button>
+    </nav>
+
+    <!-- About -->
+    <section class="section" id="about">
+      <div class="glass section-card reveal">
+        <div class="section-header">
+          <p class="section-num">01</p>
+          <h2 class="section-title">关于我</h2>
+          <p class="section-title-en">About Me</p>
+        </div>
+        <div class="info-grid">
+          <div class="info-item"><label>性别 · Gender</label><div class="val">女</div><div class="val-en">Female</div></div>
+          <div class="info-item"><label>电话 · Phone</label><div class="val">13643663807</div></div>
+          <div class="info-item"><label>邮箱 · Email</label><div class="val">jinkun3807@163.com</div></div>
+          <div class="info-item"><label>籍贯 · Hometown</label><div class="val">山西太原</div><div class="val-en">Taiyuan, Shanxi</div></div>
+          <div class="info-item"><label>年龄 · 民族 · Age · Ethnicity</label><div class="val">22岁 · 汉族</div><div class="val-en">22 · Han Chinese</div></div>
+          <div class="info-item"><label>政治面貌 · Political Status</label><div class="val">中共党员</div><div class="val-en">CPC Member</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section class="section" id="education">
+      <div class="glass section-card reveal">
+        <div class="section-header"><p class="section-num">02</p><h2 class="section-title">教育背景</h2><p class="section-title-en">Education</p></div>
+        <div class="highlight-row">
+          <div class="highlight-cell"><div class="num">3.76<span>/4</span></div><div class="label-zh">绩点成绩</div><div class="label-en">GPA</div></div>
+          <div class="highlight-cell"><div class="num">1<span>/29</span></div><div class="label-zh">绩点排名</div><div class="label-en">Rank</div></div>
+          <div class="highlight-cell"><div class="num">98<span>分</span></div><div class="label-zh">台词技巧</div><div class="label-en">Line Delivery</div></div>
+        </div>
+        <div class="timeline" style="margin-top:20px;">
+          <div class="timeline-item">
+            <div class="timeline-period">2021.09 — 2025.07</div>
+            <div class="timeline-card">
+              <h3>表演专业 · 本科 <span class="en">B.A. in Performing Arts</span></h3>
+              <p class="role">辽宁大学 · 艺术学院 <span style="color:var(--c-text3);">Liaoning University · College of Arts</span></p>
+              <p>主修课程：短视频创作(97)、舞台美术设计(92)、影视作品赏析(92)、话剧多幕剧排练(96)、台词技巧(98)、艺术概论等</p>
+              <p style="color:var(--c-text3);font-size:0.7rem;margin-top:3px;">Key Courses: Short Video Creation (97), Stage Design (92), Film Appreciation (92), Multi-act Play Rehearsal (96), Line Delivery Techniques (98), Art Theory, etc.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section class="section" id="skills">
+      <div class="glass section-card reveal">
+        <div class="section-header"><p class="section-num">03</p><h2 class="section-title">专业技能</h2><p class="section-title-en">Skills & Expertise</p></div>
+        <div class="skill-category">
+          <h4>表演艺术 <span>Performing Arts</span></h4>
+          <div class="skill-tags">
+            <span class="skill-tag">戏剧表演 Theater</span><span class="skill-tag">影视表演 Film Acting</span><span class="skill-tag">台词技巧 Line Delivery</span><span class="skill-tag">儿童剧表演 Children's Theater</span><span class="skill-tag">舞台美术设计 Stage Design</span><span class="skill-tag">话剧排练 Play Rehearsal</span>
+          </div>
+        </div>
+        <div class="skill-category">
+          <h4>编导与传媒 <span>Directing & Media</span></h4>
+          <div class="skill-tags">
+            <span class="skill-tag">短视频创作 Short Video</span><span class="skill-tag">策划编导 Planning & Directing</span><span class="skill-tag">文案写作 Copywriting</span><span class="skill-tag">自媒体运营 Social Media</span><span class="skill-tag">影视作品赏析 Film Analysis</span><span class="skill-tag">主持 Hosting</span>
+          </div>
+        </div>
+        <div class="skill-category">
+          <h4>兴趣爱好 <span>Hobbies</span></h4>
+          <div class="skill-tags">
+            <span class="skill-tag">戏曲水袖 Chinese Opera Sleeve</span><span class="skill-tag">舞蹈 Dance</span><span class="skill-tag">钢琴 Piano</span><span class="skill-tag">唱歌 Singing</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section class="section" id="experience">
+      <div class="glass section-card reveal">
+        <div class="section-header"><p class="section-num">04</p><h2 class="section-title">实践经历</h2><p class="section-title-en">Practice Experience</p></div>
+        <div class="timeline">
+          <div class="timeline-item"><div class="timeline-period">2024.04 — 2024.06</div><div class="timeline-card"><h3>辽宁大学第十七届"艺术之星" <span class="en">17th "Art Star" of Liaoning University</span></h3><p class="role">文艺晚会负责人 · Gala Director</p></div></div>
+          <div class="timeline-item"><div class="timeline-period">2024.01</div><div class="timeline-card"><h3>辽宁省电视台第十二届读书节"阅读盛典" <span class="en">12th Reading Festival Gala · Liaoning TV</span></h3><p class="role">主持人 · Host</p></div></div>
+          <div class="timeline-item"><div class="timeline-period">2023.08 — 2023.09</div><div class="timeline-card"><h3>辽宁省闽商商会晚会 <span class="en">Liaoning Fujian Chamber of Commerce Gala</span></h3><p class="role">演员、负责人 · Actress & Director</p></div></div>
+          <div class="timeline-item"><div class="timeline-period">2022.10 — 2023.10</div><div class="timeline-card"><h3>七彩甜橙儿童剧团 <span class="en">Rainbow Orange Children's Theater Troupe</span></h3><p class="role">儿童剧演员 · Children's Theater Actress</p></div></div>
+          <div class="timeline-item"><div class="timeline-period">2022.09 — 至今 <span style="color:var(--c-text3);">Present</span></div><div class="timeline-card"><h3>辽宁大学"十佳社团" <span class="en">Liaoning University "Top 10 Societies"</span></h3><p class="role">文体艺术团团长 · Arts Troupe Leader</p></div></div>
+          <div class="timeline-item"><div class="timeline-period">2021.07 — 2021.08</div><div class="timeline-card"><h3>山西十大群众文化闭幕式 <span class="en">Shanxi Top 10 Mass Culture Closing Ceremony</span></h3><p class="role">节目负责人 · Program Director</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Research & Honors -->
+    <section class="section" id="research">
+      <div class="glass section-card reveal">
+        <div class="section-header"><p class="section-num">05</p><h2 class="section-title">科研论文与荣誉</h2><p class="section-title-en">Research & Honors</p></div>
+        <h4 style="font-size:0.62rem;letter-spacing:4px;color:var(--c-text3);margin-bottom:20px;">学术论文 <span style="font-weight:350;margin-left:6px;color:#ccc;">Academic Papers</span></h4>
+        <div class="papers-list" style="margin-bottom:40px;">
+          <div class="paper-card"><h3>《人生大事》中的人物塑造与叙事策略 <span class="en">Character Building and Narrative Strategy in "Lighting Up the Stars"</span></h3><p class="meta">闫金坤 · 大观(论坛) · 2024(06):84-86</p></div>
+          <div class="paper-card"><h3>喜剧电影的表演风格探究——以葛优为例 <span class="en">A Study on Performance Styles in Comedy Films — Taking Ge You as an Example</span></h3><p class="meta">闫金坤 · 喜剧世界(上半月) · 2023(04):46-48</p></div>
+        </div>
+        <h4 style="font-size:0.62rem;letter-spacing:4px;color:var(--c-text3);margin-bottom:20px;">荣誉证书 <span style="font-weight:350;margin-left:6px;color:#ccc;">Honors & Awards</span></h4>
+        <div class="timeline">
+          <div class="timeline-item"><div class="timeline-period">2023 — 2024</div><div class="timeline-card"><h3>2023-2024学年第一学期 <span class="en">Semester 1</span></h3><p class="role">获二等奖学金 · Second-Class Scholarship</p></div></div>
+          <div class="timeline-item"><div class="timeline-period">2022 — 2023</div><div class="timeline-card"><h3>2022-2023学年 <span class="en">Academic Year</span></h3><p class="role">连续两学期分别获得一、二等奖学金 · First & Second-Class Scholarships</p></div></div>
+          <div class="timeline-item"><div class="timeline-period">2021 — 2022</div><div class="timeline-card"><h3>2021-2022学年 <span class="en">Academic Year</span></h3><p class="role">第一学期获一等奖学金、优秀团员；第二学期获二等奖学金 · First-Class Scholarship & Outstanding League Member; Second-Class Scholarship</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Self Evaluation -->
+    <section class="section" id="eval">
+      <div class="glass section-card reveal">
+        <div class="section-header"><p class="section-num">06</p><h2 class="section-title">自我评价</h2><p class="section-title-en">Self Evaluation</p></div>
+        <div class="eval-block">
+          <p>本人性格开朗、对人热情，有非常好的人际交往能力，愿意主动学习及自主学习，有长久的奋斗目标。我在团队活动方面富有责任心，不论个人工作或团队任务，都会尽一切努力出色地完成好。有丰富的社团领导工作经历，具有较好的领导力、组织能力和团队精神。我在本科期间学习了丰富的戏剧知识，我十分热爱舞台且关注当下话剧、戏曲、影视、自媒体等新的发展方向，有丰富的短视频策划编导知识，有较好的创意头脑及文案功底，较强的逻辑思维能力，丰富的创造力和想象力。</p>
+          <p class="eval-en">I am outgoing and passionate with excellent interpersonal skills. I actively seek learning opportunities and have long-term goals. I am highly responsible in team activities, and whether in individual or team tasks, I always give my best to deliver excellence. With extensive experience in club leadership, I possess strong leadership, organizational, and teamwork skills. During my undergraduate studies, I gained rich knowledge in theater arts. I deeply love the stage and closely follow new developments in drama, opera, film, and social media. I have solid knowledge in short video planning and directing, creative thinking, strong writing skills, logical reasoning, and abundant imagination and creativity.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="glass footer-card reveal">
+        <div class="footer-links">
+          <a href="mailto:jinkun3807@163.com">Email</a>
+          <a href="tel:13643663807">Phone</a>
+          <a href="#">WeChat</a>
+          <a href="#splash">Back to Top ↑</a>
+        </div>
+        <p class="footer-copy">&copy; 2025 YAN JINKUN</p>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+</div><!-- /content-layer -->
+
+<!-- Settings Overlay & Panel -->
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="settings-panel" id="settingsPanel">
+  <h3>
+    设置 · Settings
+    <button class="settings-close" id="settingsClose">&times;</button>
+  </h3>
+
+  <div class="setting-group">
+    <h4>封面照片 · Cover Photo</h4>
+    <div class="input-row">
+      <input type="text" id="coverUrl" placeholder="图片路径，如 photos/cover.jpg">
+    </div>
+    <div class="input-row">
+      <input type="file" id="coverFile" accept="image/*">
+    </div>
+    <button class="btn-xs" id="applyCover" style="width:100%;">应用 · Apply</button>
+    <div style="font-size:0.58rem;color:#bbb;margin-top:6px;">建议把照片放到 photos/ 文件夹内，输入路径引用</div>
+  </div>
+
+  <div class="setting-group">
+    <h4>轮播照片 · Carousel (5张)</h4>
+    <div id="carouselList"></div>
+    <div class="input-row" style="margin-top:8px;">
+      <input type="text" id="carouselUrl" placeholder="图片路径">
+      <button class="btn-xs" id="addCarousel">添加</button>
+    </div>
+    <div class="input-row">
+      <input type="file" id="carouselFile" accept="image/*" multiple>
+    </div>
+    <div style="font-size:0.58rem;color:#bbb;margin-top:4px;">⚠ 大图请放到 photos/ 文件夹用路径引用，避免存储限制</div>
+  </div>
+
+  <button class="btn-xs" id="resetPhotos" style="width:100%;">恢复默认 · Reset</button>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  //  SPLASH PAGE — mouse parallax + click to scroll
+  // ============================================================
+  const splash = document.getElementById('splash');
+  const splashNames = document.getElementById('splashNames');
+
+  if (splash && splashNames) {
+    splash.addEventListener('mousemove', e => {
+      const rect = splash.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / rect.width;
+      const dy = (e.clientY - cy) / rect.height;
+      const moveX = dx * 24;
+      const moveY = dy * 16;
+      splashNames.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    });
+
+    splash.addEventListener('mouseleave', () => {
+      splashNames.style.transform = 'translate(0, 0)';
+    });
+
+    splash.addEventListener('click', () => {
+      document.getElementById('cover').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // ============================================================
+  //  DOT BACKGROUND — disabled, clean bg
+  // ============================================================
+  const waveCanvas = document.getElementById('waveCanvas');
+  const waveCtx = waveCanvas.getContext('2d');
+  let dotTime = 0;
+  let dotAnimId;
+  let dots = [];
+
+  function resizeDots() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    waveCanvas.width = window.innerWidth * dpr;
+    waveCanvas.height = window.innerHeight * dpr;
+    waveCanvas.style.width = window.innerWidth + 'px';
+    waveCanvas.style.height = window.innerHeight + 'px';
+    waveCtx.setTransform(1, 0, 0, 1, 0, 0);
+    waveCtx.scale(dpr, dpr);
+    initDots();
+  }
+
+  function initDots() {
+    dots = [];
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const rowSpacing = 52;
+    const rows = Math.floor(H / rowSpacing) + 1;
+    const colSpacing = 46;
+
+    for (let r = 0; r < rows; r++) {
+      const baseY = r * rowSpacing;
+      const wavePhase = r * 0.7;
+      const amplitude = 25 + Math.random() * 22;
+      const cols = Math.floor(W / colSpacing) + 1;
+
+      for (let c = 0; c < cols; c++) {
+        const t = c / cols; // 0 (left) → 1 (right)
+        const baseX = c * colSpacing;
+        const offsetY = Math.sin(t * Math.PI * 3.5 + wavePhase) * amplitude;
+        const x = baseX + (Math.random() - 0.5) * 28;
+        const y = baseY + offsetY + (Math.random() - 0.5) * 14;
+
+        // Size: largest on left (~44px), smallest on right (~8px)
+        const maxSize = 42;
+        const minSize = 8;
+        const size = maxSize - t * (maxSize - minSize) + Math.random() * 6;
+
+        dots.push({
+          x, y,
+          baseSize: Math.max(4, size),
+          phase: Math.random() * Math.PI * 2,
+          speed: Math.random() * 0.25 + 0.1
+        });
+      }
+    }
+  }
+
+  function drawDots(timestamp) {
+    dotTime = timestamp * 0.001;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    waveCtx.clearRect(0, 0, W, H);
+
+    for (const d of dots) {
+      const pulse = Math.sin(dotTime * d.speed + d.phase);
+      const size = d.baseSize * (1 + pulse * 0.3);
+
+      const gradient = waveCtx.createRadialGradient(d.x, d.y, size * 0.2, d.x, d.y, size);
+      gradient.addColorStop(0, 'rgba(0,0,0,0.9)');
+      gradient.addColorStop(0.55, 'rgba(0,0,0,0.45)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+      waveCtx.fillStyle = gradient;
+      waveCtx.beginPath();
+      waveCtx.arc(d.x, d.y, size, 0, Math.PI * 2);
+      waveCtx.fill();
+    }
+
+    dotAnimId = requestAnimationFrame(drawDots);
+  }
+
+  function startDots() {
+    resizeDots();
+    if (dotAnimId) cancelAnimationFrame(dotAnimId);
+    dotAnimId = requestAnimationFrame(drawDots);
+  }
+
+  // Dots disabled — clean background
+  window.addEventListener('resize', startDots);
+
+  // ============================================================
+  //  CLICK BACKGROUND → scroll down + advance carousel photo
+  // ============================================================
+  document.getElementById('bgClickLayer').addEventListener('click', () => {
+    switchCarousel((carouselIdx !== undefined ? carouselIdx : 0) + 1);
+    window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' });
+  });
+
+  // ============================================================
+  //  CLICK BACKGROUND TO SCROLL
+  // ============================================================
+  waveCanvas.addEventListener('click', (e) => {
+    // Only if clicking directly on canvas, not on content above
+    const scrollTarget = window.scrollY + window.innerHeight * 0.7;
+    window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+  });
+
+  // ============================================================
+  //  PHOTO MANAGEMENT
+  // ============================================================
+  const STORAGE_COVER = 'cv_cover';
+  const STORAGE_CAROUSEL = 'cv_carousel';
+
+  // Clear potentially corrupted large data URLs from old storage
+  try {
+    const oldCover = localStorage.getItem('resume_cover_photo');
+    const oldCarousel = localStorage.getItem('resume_carousel_photos');
+    if (oldCover && oldCover.startsWith('data:')) localStorage.removeItem('resume_cover_photo');
+    if (oldCarousel) {
+      const arr = JSON.parse(oldCarousel);
+      if (arr.some(u => u.startsWith('data:') && u.length > 50000)) {
+        localStorage.removeItem('resume_carousel_photos');
+      }
+    }
+  } catch(e) {}
+
+  let coverPhotoUrl = localStorage.getItem(STORAGE_COVER) || 'photos/cover.jpg';
+  let carouselPhotos = JSON.parse(localStorage.getItem(STORAGE_CAROUSEL) || '["photos/photo1.jpg","photos/photo2.jpg","photos/photo3.jpg","photos/photo4.jpg","photos/photo5.jpg"]');
+
+  function saveState() {
+    localStorage.setItem(STORAGE_COVER, coverPhotoUrl);
+    localStorage.setItem(STORAGE_CAROUSEL, JSON.stringify(carouselPhotos));
+  }
+
+  function applyCoverPhoto() {
+    const container = document.getElementById('coverPhoto');
+    if (!coverPhotoUrl) {
+      container.innerHTML = '<div class="cover-photo-placeholder">🎭<small>点击 ⚙ 设置照片</small></div>';
+      return;
+    }
+    const img = new Image();
+    img.onload = () => { container.innerHTML = ''; container.appendChild(img); };
+    img.onerror = () => {
+      container.innerHTML = `<div class="cover-photo-placeholder">🎭<small>未找到: ${coverPhotoUrl}</small></div>`;
+    };
+    img.src = coverPhotoUrl;
+  }
+
+  function applyCarouselPhotos() {
+    const slides = document.querySelectorAll('.carousel-slide');
+    slides.forEach((slide, i) => {
+      const url = carouselPhotos[i];
+      if (url) {
+        const img = new Image();
+        img.onload = () => { slide.innerHTML = ''; slide.appendChild(img); };
+        img.onerror = () => {
+          slide.innerHTML = `<div class="carousel-slide-placeholder">0${i+1}<small>未找到: ${url}</small></div>`;
+        };
+        img.src = url;
+      } else {
+        slide.innerHTML = `<div class="carousel-slide-placeholder">0${i+1}<small>点击 ⚙ 添加</small></div>`;
+      }
+    });
+    updateCarouselListUI();
+  }
+
+  function refreshAllPhotos() {
+    applyCoverPhoto();
+    applyCarouselPhotos();
+  }
+
+  // ============================================================
+  //  CAROUSEL SWITCHING
+  // ============================================================
+  let carouselIdx = 0;
+  function switchCarousel(idx) {
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dot');
+    if (!slides.length) return;
+    const newIdx = ((idx % slides.length) + slides.length) % slides.length;
+    slides.forEach(s => s.classList.remove('active'));
+    dots.forEach(d => d.classList.remove('active'));
+    slides[newIdx].classList.add('active');
+    if (dots[newIdx]) dots[newIdx].classList.add('active');
+    carouselIdx = newIdx;
+  }
+
+  document.getElementById('carouselPrev').addEventListener('click', () => switchCarousel(carouselIdx - 1));
+  document.getElementById('carouselNext').addEventListener('click', () => switchCarousel(carouselIdx + 1));
+  document.querySelectorAll('.carousel-dot').forEach(dot => {
+    dot.addEventListener('click', () => switchCarousel(parseInt(dot.dataset.dot)));
+  });
+
+  // Touch swipe
+  const carouselView = document.getElementById('carouselView');
+  let touchX = 0;
+  carouselView.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+  carouselView.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(diff) > 40) switchCarousel(carouselIdx + (diff > 0 ? -1 : 1));
+  });
+
+  setInterval(() => {
+    if (document.visibilityState === 'visible') switchCarousel(carouselIdx + 1);
+  }, 6000);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') switchCarousel(carouselIdx + 1);
+    if (e.key === 'ArrowLeft') switchCarousel(carouselIdx - 1);
+  });
+
+  // ============================================================
+  //  SETTINGS PANEL
+  // ============================================================
+  const settingsFab = document.getElementById('settingsFab');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const settingsOverlay = document.getElementById('settingsOverlay');
+
+  function openSettings() {
+    settingsPanel.classList.add('open');
+    settingsOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('coverUrl').value = coverPhotoUrl;
+    updateCarouselListUI();
+  }
+  function closeSettings() {
+    settingsPanel.classList.remove('open');
+    settingsOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  settingsFab.addEventListener('click', openSettings);
+  document.getElementById('settingsClose').addEventListener('click', closeSettings);
+  settingsOverlay.addEventListener('click', closeSettings);
+
+  function updateCarouselListUI() {
+    const list = document.getElementById('carouselList');
+    list.innerHTML = carouselPhotos.map((url, i) => `
+      <div class="photo-item">
+        <span class="name">${url || '(空)'}</span>
+        <button class="btn-xs remove" data-idx="${i}">移除</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        carouselPhotos.splice(parseInt(btn.dataset.idx), 1);
+        saveState();
+        applyCarouselPhotos();
+      });
+    });
+  }
+
+  // Apply cover
+  document.getElementById('applyCover').addEventListener('click', () => {
+    const url = document.getElementById('coverUrl').value.trim();
+    if (url) {
+      coverPhotoUrl = url;
+      saveState();
+      applyCoverPhoto();
+    }
+  });
+
+  // Cover file upload — only use if small
+  document.getElementById('coverFile').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 500000) {
+      alert('图片大于500KB，请放到 photos/ 文件夹，然后在输入框输入路径引用。');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      coverPhotoUrl = e.target.result;
+      document.getElementById('coverUrl').value = '(已上传本地文件)';
+      saveState();
+      applyCoverPhoto();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Add carousel URL
+  document.getElementById('addCarousel').addEventListener('click', () => {
+    const input = document.getElementById('carouselUrl');
+    const url = input.value.trim();
+    if (url) {
+      carouselPhotos.push(url);
+      saveState();
+      applyCarouselPhotos();
+      input.value = '';
+    }
+  });
+
+  document.getElementById('carouselUrl').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('addCarousel').click();
+  });
+
+  // Carousel file upload
+  document.getElementById('carouselFile').addEventListener('change', function() {
+    const files = Array.from(this.files);
+    files.forEach(file => {
+      if (file.size > 500000) {
+        alert(`图片 "${file.name}" 大于500KB，请放到 photos/ 文件夹引用。`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        carouselPhotos.push(e.target.result);
+        saveState();
+        applyCarouselPhotos();
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Reset
+  document.getElementById('resetPhotos').addEventListener('click', () => {
+    coverPhotoUrl = '';
+    carouselPhotos = ['photos/photo1.jpg','photos/photo2.jpg','photos/photo3.jpg','photos/photo4.jpg','photos/photo5.jpg'];
+    saveState();
+    document.getElementById('coverUrl').value = '';
+    refreshAllPhotos();
+    updateCarouselListUI();
+  });
+
+  // ============================================================
+  //  NAME ANIMATION — slides between cover and carousel
+  // ============================================================
+  const carouselName = document.getElementById('carouselName');
+  const coverName = document.querySelector('.cover-name');
+  let nameInCarousel = false;
+
+  function showNameInCarousel() {
+    if (nameInCarousel) return;
+    nameInCarousel = true;
+    carouselName.classList.add('visible');
+  }
+
+  function hideNameInCarousel() {
+    if (!nameInCarousel) return;
+    nameInCarousel = false;
+    carouselName.classList.remove('visible');
+  }
+
+  // Intersection Observer — show/hide name based on scroll position
+  const nameObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+        showNameInCarousel();
+      } else if (entry.boundingClientRect.top > window.innerHeight * 0.5) {
+        hideNameInCarousel();
+      }
+    });
+  }, { threshold: [0, 0.3, 0.5] });
+
+  const resumeSection = document.getElementById('resume');
+  nameObserver.observe(resumeSection);
+
+  // ============================================================
+  //  COVER ENTER BUTTON
+  // ============================================================
+  document.getElementById('coverEnter').addEventListener('click', () => {
+    document.getElementById('resume').scrollIntoView({ behavior: 'smooth' });
+    // Show name after scroll completes
+    setTimeout(() => showNameInCarousel(), 700);
+  });
+
+  // ============================================================
+  //  SCROLL REVEAL
+  // ============================================================
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -10px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ============================================================
+  //  NAV
+  // ============================================================
+  const nav = document.getElementById('nav');
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav a');
+
+  function updateNav() {
+    if (window.scrollY > 40) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 160) current = s.getAttribute('id'); });
+    navLinks.forEach(l => {
+      l.classList.remove('active');
+      if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+    });
+  }
+
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const href = this.getAttribute('href');
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (href === '#splash') {
+          hideNameInCarousel();
+        }
+      }
+    });
+  });
+
+  // Back to Top in footer
+  document.querySelector('.footer-links a[href="#splash"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    hideNameInCarousel();
+    setTimeout(() => {
+      document.getElementById('splash').scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  });
+
+  // ============================================================
+  //  FOCUS / EXPAND — card flies to center, background blurs
+  // ============================================================
+  const focusOverlay = document.getElementById('focusOverlay');
+  let focusedEl = null;
+  let focusOriginalRect = null;
+  let focusClone = null;
+
+  function bindFocus(el) {
+    if (el.classList.contains('focusable')) return;
+    el.classList.add('focusable');
+    el.addEventListener('click', function(e) {
+      if (e.target.closest('a, button, input, .carousel-btn, .carousel-dot, .settings-fab, .remove-btn, .btn-xs')) return;
+      if (focusedEl) return;
+
+      const card = this;
+      const rect = card.getBoundingClientRect();
+      focusOriginalRect = { left: rect.left, top: rect.top, width: rect.width };
+      focusedEl = card;
+
+      // Save original styles
+      const origWidth = rect.width;
+      const origHeight = rect.height;
+
+      // Step 1: Pin to current position
+      card.style.position = 'fixed';
+      card.style.left = rect.left + 'px';
+      card.style.top = rect.top + 'px';
+      card.style.width = origWidth + 'px';
+      card.style.height = 'auto';
+      card.style.margin = '0';
+      card.style.zIndex = '999';
+
+      // Step 2: Animate to center (next frame)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const cw = Math.min(origWidth * 2, window.innerWidth * 0.9);
+          card.style.left = '50%';
+          card.style.top = '50%';
+          card.style.width = cw + 'px';
+          card.style.maxHeight = '85vh';
+          card.style.overflowY = 'auto';
+          card.style.transform = 'translate(-50%, -50%) scale(1)';
+          card.style.boxShadow = '0 12px 48px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.08)';
+          card.style.borderRadius = 'var(--glass-radius)';
+          card.classList.add('focused');
+        });
+      });
+    });
+  }
+
+  // Bind only resume-page glass elements (not cover)
+  document.querySelectorAll('#resume .glass, #resume .carousel-view').forEach(bindFocus);
+
+  function closeFocus() {
+    if (!focusedEl) return;
+    const card = focusedEl;
+    const rect = focusOriginalRect;
+
+    card.classList.remove('focused');
+
+    if (rect) {
+      // Animate back to original position
+      card.style.left = rect.left + 'px';
+      card.style.top = rect.top + 'px';
+      card.style.width = rect.width + 'px';
+      card.style.transform = 'translate(0, 0) scale(1)';
+      card.style.boxShadow = '';
+
+      setTimeout(() => {
+        // Clear ALL inline styles so CSS takes over completely
+        card.removeAttribute('style');
+        focusedEl = null;
+        focusOriginalRect = null;
+      }, 480);
+    } else {
+      setTimeout(() => {
+        card.removeAttribute('style');
+        focusedEl = null;
+      }, 480);
+    }
+  }
+
+  // Click anywhere outside card to close
+  document.addEventListener('click', e => {
+    if (focusedEl && !focusedEl.contains(e.target)) closeFocus();
+  });
+  // Esc to close
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeFocus();
+  });
+
+  // ============================================================
+  //  INIT
+  // ============================================================
+  refreshAllPhotos();
+
+  console.log('%c⚫ YAN Jinkun Portfolio %cReady',
+    'font-size:14px;font-weight:200;letter-spacing:2px;', 'color:#999;');
+  console.log('%cClick background → next carousel photo', 'color:#999;font-size:11px;');
+  console.log('%cClick ⚙ → manage photos', 'color:#999;font-size:11px;');
+  console.log('%cPut photos in /photos folder, reference by path', 'color:#999;font-size:11px;');
+})();
+</script>
+</body>
+</html>
